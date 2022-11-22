@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  ActivityIndicator,
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
@@ -22,6 +23,11 @@ export default function SignInScreen({ setToken }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const startLoading = () => {
+    setLoading(true);
+  };
 
   return (
     <View style={[styles.container]}>
@@ -52,30 +58,36 @@ export default function SignInScreen({ setToken }) {
         <View style={[styles.inputContainerBas]}>
           <View style={[styles.buttonContainer]}>
             <Text style={[styles.errorMessage]}>{errorMessage}</Text>
-            <Pressable
-              style={[styles.button]}
-              onPress={async () => {
-                setErrorMessage("");
-                try {
-                  const response = await axios.post(
-                    "https://express-airbnb-api.herokuapp.com/user/log_in",
-                    { email: email, password: password }
-                  );
-                  if (response.data.token) {
-                    const userToken = "secret-token";
-                    setToken(userToken);
+            {loading ? (
+              <ActivityIndicator visible={loading} textContent={"Loading..."} />
+            ) : (
+              <Pressable
+                style={[styles.button]}
+                onPress={async () => {
+                  setErrorMessage("");
+                  startLoading();
+                  try {
+                    const response = await axios.post(
+                      "https://express-airbnb-api.herokuapp.com/user/log_in",
+                      { email: email, password: password }
+                    );
+                    if (response.data.token) {
+                      const userToken = "secret-token";
+                      setToken(userToken);
+                    }
+                    alert("Successful connection");
+                  } catch (error) {
+                    if (error.response?.data.error === "Missing parameter(s)") {
+                      setErrorMessage("Please fill all fields");
+                    } else if (error.response?.data.error === "Unauthorized") {
+                      setErrorMessage("Incorrect email or password");
+                    }
                   }
-                } catch (error) {
-                  if (error.response?.data.error === "Missing parameter(s)") {
-                    setErrorMessage("Please fill all fields");
-                  } else if (error.response?.data.error === "Unauthorized") {
-                    setErrorMessage("Incorrect email or password");
-                  }
-                }
-              }}
-            >
-              <Text style={[styles.textButton]}>Sign In</Text>
-            </Pressable>
+                }}
+              >
+                <Text style={[styles.textButton]}>Sign In</Text>
+              </Pressable>
+            )}
           </View>
           <TouchableOpacity
             onPress={() => {
