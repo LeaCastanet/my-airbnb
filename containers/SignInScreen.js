@@ -44,6 +44,7 @@ export default function SignInScreen({ setToken }) {
               setEmail(textEmail);
             }}
             value={email}
+            autoCapitalize="none"
           />
           <TextInput
             placeholder="Password"
@@ -72,7 +73,7 @@ export default function SignInScreen({ setToken }) {
                       { email: email, password: password }
                     );
                     if (response.data.token) {
-                      const userToken = "secret-token";
+                      const userToken = response.data.token;
                       setToken(userToken);
                     }
                     alert("Successful connection");

@@ -1,5 +1,6 @@
-import { useNavigation } from "@react-navigation/core";
+import { useRoute } from "@react-navigation/core";
 import { Entypo } from "@expo/vector-icons";
+import { SwiperFlatList } from "react-native-swiper-flatlist";
 import { ActivityIndicator } from "react-native";
 import {
   Button,
@@ -12,22 +13,27 @@ import {
   Image,
   TouchableOpacity,
 } from "react-native";
+import { useNavigation } from "@react-navigation/core";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-export default function HomeScreen() {
+export default function RoomScreen() {
+  const route = useRoute();
+
   const navigation = useNavigation();
 
-  const [infoHome, setInfoHome] = useState();
+  const [infoRoom, setInfoRoom] = useState({});
   const [isLoading, setIsLoading] = useState(true);
+
+  const id = route.params.id;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          "https://express-airbnb-api.herokuapp.com/rooms"
+          `https://express-airbnb-api.herokuapp.com/rooms/${id}`
         );
-        setInfoHome(response.data);
+        setInfoRoom(response.data);
         setIsLoading(false);
       } catch (error) {
         console.log(error.message);
@@ -35,6 +41,16 @@ export default function HomeScreen() {
     };
     fetchData();
   }, []);
+
+  let rating = infoRoom.ratingValue;
+  let stars = [];
+  for (let i = 1; i <= 5; i++) {
+    let path = <Entypo name="star" size={24} color="orange" />;
+    if (i > rating) {
+      path = <Entypo name="star" size={24} color="#bbbbbb" />;
+    }
+    stars.push(path);
+  }
 
   return isLoading ? (
     <ActivityIndicator
@@ -46,58 +62,46 @@ export default function HomeScreen() {
     <SafeAreaView>
       <View style={[styles.container]}>
         <FlatList
-          data={infoHome}
+          data={infoRoom.photos}
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => {
-            let rating = item.ratingValue;
-            let stars = [];
-            for (let i = 1; i <= 5; i++) {
-              let path = <Entypo name="star" size={24} color="orange" />;
-              if (i > rating) {
-                path = <Entypo name="star" size={24} color="#bbbbbb" />;
-              }
-              stars.push(path);
-            }
             return (
-              <TouchableOpacity
-                style={[styles.offreContainer]}
-                onPress={() => {
-                  navigation.navigate("Room", { id: item._id });
-                }}
-              >
-                <View>
+              <View>
+                <View style={[styles.imgWrap]}>
                   <Image
                     style={{ width: "100%", height: 200 }}
-                    source={{ uri: item.photos[0].url }}
+                    source={{ uri: item.url }}
                   />
                   <View style={[styles.priceContainer]}>
-                    <Text style={[styles.price]}>{item.price} €</Text>
+                    <Text style={[styles.price]}>{infoRoom.price} €</Text>
                   </View>
                 </View>
-
-                <View style={[styles.descriptionContainer]}>
-                  <View style={[styles.descriptionTextContainer]}>
-                    <Text style={[styles.title]} numberOfLines={1}>
-                      {item.title}
-                    </Text>
-                    <View style={[styles.ratingContainer]}>
-                      <View style={[styles.starsContainer]}>{stars}</View>
-                      <Text style={[styles.reviews]}>
-                        {item.reviews} reviews
-                      </Text>
-                    </View>
-                  </View>
-                  <View>
-                    <Image
-                      style={[styles.imgProfile]}
-                      source={{ uri: item.user.account.photo.url }}
-                    />
-                  </View>
-                </View>
-              </TouchableOpacity>
+              </View>
             );
           }}
         />
+        <View style={[styles.descriptionContainer]}>
+          <View style={[styles.descriptionTextContainer]}>
+            <Text style={[styles.title]} numberOfLines={1}>
+              {infoRoom.title}
+            </Text>
+            <View style={[styles.ratingContainer]}>
+              <View style={[styles.starsContainer]}>{stars}</View>
+              <Text style={[styles.reviews]}>{infoRoom.reviews} reviews</Text>
+            </View>
+          </View>
+          <View>
+            <Image
+              style={[styles.imgProfile]}
+              source={{ uri: infoRoom.user.account.photo.url }}
+            />
+          </View>
+        </View>
+        <View>
+          <TouchableOpacity>
+            <Text numberOfLines={3}>{infoRoom.description}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -168,5 +172,11 @@ const styles = StyleSheet.create({
 
   reviews: {
     color: "gray",
+  },
+
+  imgWrap: {
+    flexDirection: "row",
+    overflow: "hidden",
+    width: "100%",
   },
 });

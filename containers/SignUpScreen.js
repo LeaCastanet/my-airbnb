@@ -47,6 +47,7 @@ export default function SignUpScreen({ setToken }) {
                 setEmail(textEmail);
               }}
               value={email}
+              autoCapitalize="none"
             />
             <TextInput
               placeholder="Username"
@@ -110,15 +111,13 @@ export default function SignUpScreen({ setToken }) {
                         }
                       );
                       if (response.data.token) {
-                        const userToken = "secret-token";
+                        const userToken = response.data.token;
                         setToken(userToken);
                       }
                       alert("Successful registration");
                     } catch (error) {
                       if (confirmPassword !== password) {
-                        setErrorMessage(
-                          "Vos deux mots de passe ne sont pas identiques"
-                        );
+                        setErrorMessage("Your two passwords are not identical");
                       } else if (
                         error.response?.data.error === "Missing parameters"
                       ) {
