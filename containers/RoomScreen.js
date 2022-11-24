@@ -139,8 +139,8 @@ export default function RoomScreen() {
           initialRegion={{
             latitude: 48.856373,
             longitude: 2.353016,
-            latitudeDelta: 0.2,
-            longitudeDelta: 0.2,
+            latitudeDelta: 0.1,
+            longitudeDelta: 0.1,
           }}
           provider={PROVIDER_GOOGLE}
         >
