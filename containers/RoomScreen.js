@@ -1,7 +1,9 @@
 import { useRoute } from "@react-navigation/core";
 import { Entypo } from "@expo/vector-icons";
-import { SwiperFlatList } from "react-native-swiper-flatlist";
+import Swiper from "react-native-swiper";
 import { ActivityIndicator } from "react-native";
+import MapView, { PROVIDER_GOOGLE, Marker } from "react-native-maps";
+import { useCallback } from "react";
 import {
   Button,
   Text,
@@ -45,12 +47,24 @@ export default function RoomScreen() {
   let rating = infoRoom.ratingValue;
   let stars = [];
   for (let i = 1; i <= 5; i++) {
-    let path = <Entypo name="star" size={24} color="orange" />;
+    let path = <Entypo name="star" size={24} color="orange" key={i} />;
     if (i > rating) {
-      path = <Entypo name="star" size={24} color="#bbbbbb" />;
+      path = <Entypo name="star" size={24} color="#bbbbbb" key={i} />;
     }
     stars.push(path);
   }
+
+  const [textShown, setTextShown] = useState(false); //To show ur remaining Text
+  const [lengthMore, setLengthMore] = useState(false); //to show the "Read more & Less Line"
+  const toggleNumberOfLines = () => {
+    //To toggle the show text or hide it
+    setTextShown(!textShown);
+  };
+
+  const onTextLayout = useCallback((e) => {
+    setLengthMore(e.nativeEvent.lines.length >= 3); //to check the text is more than 4 lines or not
+    // console.log(e.nativeEvent);
+  }, []);
 
   return isLoading ? (
     <ActivityIndicator
@@ -60,28 +74,32 @@ export default function RoomScreen() {
     />
   ) : (
     <SafeAreaView>
-      <View style={[styles.container]}>
-        <FlatList
-          data={infoRoom.photos}
-          keyExtractor={(item) => item._id}
-          renderItem={({ item }) => {
+      <ScrollView style={[styles.container]}>
+        <Swiper
+          style={styles.wrapper}
+          dotColor="salmon"
+          activeDotColor="red"
+          autoplay
+        >
+          {infoRoom.photos.map((slide) => {
             return (
-              <View>
-                <View style={[styles.imgWrap]}>
+              <>
+                <View style={styles.slide} key={slide.picture_id}>
                   <Image
-                    style={{ width: "100%", height: 200 }}
-                    source={{ uri: item.url }}
+                    source={{ uri: slide.url }}
+                    style={{ height: "100%", width: "100%" }}
                   />
-                  <View style={[styles.priceContainer]}>
-                    <Text style={[styles.price]}>{infoRoom.price} €</Text>
-                  </View>
                 </View>
-              </View>
+              </>
             );
-          }}
-        />
-        <View style={[styles.descriptionContainer]}>
-          <View style={[styles.descriptionTextContainer]}>
+          })}
+        </Swiper>
+        <View style={[styles.priceContainer]}>
+          <Text style={[styles.price]}>{infoRoom.price} €</Text>
+        </View>
+
+        <View style={[styles.infoContainer]}>
+          <View style={[styles.infoTextContainer]}>
             <Text style={[styles.title]} numberOfLines={1}>
               {infoRoom.title}
             </Text>
@@ -94,15 +112,47 @@ export default function RoomScreen() {
             <Image
               style={[styles.imgProfile]}
               source={{ uri: infoRoom.user.account.photo.url }}
+              key={infoRoom.user.account.photo.picture_id}
             />
           </View>
         </View>
         <View>
-          <TouchableOpacity>
-            <Text numberOfLines={3}>{infoRoom.description}</Text>
-          </TouchableOpacity>
+          <View style={[styles.descriptionContainer]}>
+            <Text
+              onTextLayout={onTextLayout}
+              numberOfLines={textShown ? undefined : 3}
+            >
+              {infoRoom.description}
+            </Text>
+            {lengthMore ? (
+              <Text
+                onPress={toggleNumberOfLines}
+                style={[styles.textDescription]}
+              >
+                {textShown ? "Show less ▲" : "Show more ▼"}
+              </Text>
+            ) : null}
+          </View>
         </View>
-      </View>
+        <MapView
+          style={[styles.mapContainer]}
+          initialRegion={{
+            latitude: 48.856373,
+            longitude: 2.353016,
+            latitudeDelta: 0.2,
+            longitudeDelta: 0.2,
+          }}
+          provider={PROVIDER_GOOGLE}
+        >
+          <Marker
+            key={infoRoom._id}
+            coordinate={{
+              latitude: infoRoom.location[1],
+              longitude: infoRoom.location[0],
+            }}
+          />
+        </MapView>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -111,14 +161,10 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "white",
     height: "100%",
-    paddingHorizontal: 20,
   },
 
-  offreContainer: {
-    borderBottomColor: "gray",
-    borderBottomWidth: 0.5,
-    marginBottom: 10,
-    marginTop: 10,
+  wrapper: {
+    height: 250,
   },
 
   priceContainer: {
@@ -128,7 +174,7 @@ const styles = StyleSheet.create({
     width: 90,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 130,
+    marginTop: 175,
   },
 
   price: {
@@ -136,14 +182,16 @@ const styles = StyleSheet.create({
     fontSize: 25,
   },
 
-  descriptionContainer: {
+  infoContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingVertical: 10,
+    flex: 1,
+    paddingHorizontal: 10,
   },
 
-  descriptionTextContainer: {
+  infoTextContainer: {
     flex: 1,
   },
 
@@ -174,9 +222,22 @@ const styles = StyleSheet.create({
     color: "gray",
   },
 
-  imgWrap: {
-    flexDirection: "row",
-    overflow: "hidden",
+  descriptionContainer: {
+    paddingHorizontal: 10,
+    marginBottom: 20,
+  },
+
+  textDescription: {
+    color: "gray",
+    marginTop: 10,
+  },
+
+  slide: {
+    height: 250,
+  },
+
+  mapContainer: {
+    height: 235,
     width: "100%",
   },
 });

@@ -5,10 +5,18 @@ import { StatusBar } from "expo-status-bar";
 import Constants from "expo-constants";
 
 const CustomHeader = (props) => {
+  const id = "zfhzuhf";
+
   return (
     <View style={[styles.container]}>
       <SafeAreaView style={[styles.logoContainer]}>
-        <FontAwesome5 name="airbnb" size={45} color="#ec5a62" {...props} />
+        <FontAwesome5
+          name="airbnb"
+          size={45}
+          color="#ec5a62"
+          key={id}
+          {...props}
+        />
       </SafeAreaView>
     </View>
   );

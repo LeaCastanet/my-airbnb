@@ -52,9 +52,11 @@ export default function HomeScreen() {
             let rating = item.ratingValue;
             let stars = [];
             for (let i = 1; i <= 5; i++) {
-              let path = <Entypo name="star" size={24} color="orange" />;
+              let path = (
+                <Entypo name="star" size={24} color="orange" key={i} />
+              );
               if (i > rating) {
-                path = <Entypo name="star" size={24} color="#bbbbbb" />;
+                path = <Entypo name="star" size={24} color="#bbbbbb" key={i} />;
               }
               stars.push(path);
             }
@@ -69,6 +71,7 @@ export default function HomeScreen() {
                   <Image
                     style={{ width: "100%", height: 200 }}
                     source={{ uri: item.photos[0].url }}
+                    key={item.photos[0].picture_id}
                   />
                   <View style={[styles.priceContainer]}>
                     <Text style={[styles.price]}>{item.price} €</Text>
@@ -91,6 +94,7 @@ export default function HomeScreen() {
                     <Image
                       style={[styles.imgProfile]}
                       source={{ uri: item.user.account.photo.url }}
+                      key={item.user.account.photo.picture_id}
                     />
                   </View>
                 </View>

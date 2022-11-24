@@ -136,7 +136,7 @@ export default function App() {
                       <Stack.Screen
                         name="AroundMe"
                         options={{
-                          title: "Around Me",
+                          header: (props) => <CustomHeader {...props} />,
                         }}
                       >
                         {() => <AroundMeScreen />}
