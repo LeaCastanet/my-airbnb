@@ -17,7 +17,7 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import Constants from "expo-constants";
 
-export default function SignUpScreen({ setToken }) {
+export default function SignUpScreen({ setToken, setId }) {
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -110,9 +110,11 @@ export default function SignUpScreen({ setToken }) {
                           password: password,
                         }
                       );
-                      if (response.data.token) {
+                      if (response.data.token && response.data.id) {
                         const userToken = response.data.token;
+                        const userId = response.data.id;
                         setToken(userToken);
+                        setId(userId);
                       }
                       alert("Successful registration");
                     } catch (error) {

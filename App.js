@@ -21,6 +21,7 @@ const Stack = createNativeStackNavigator();
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [userToken, setUserToken] = useState(null);
+  const [userId, setUserId] = useState(null);
 
   const setToken = async (token) => {
     if (token) {
@@ -48,6 +49,28 @@ export default function App() {
     bootstrapAsync();
   }, []);
 
+  const setId = async (id) => {
+    if (id) {
+      await AsyncStorage.setItem("userId", id);
+    } else {
+      await AsyncStorage.removeItem("userId");
+    }
+
+    setUserId(id);
+  };
+
+  useEffect(() => {
+    const bootstrapAsync = async () => {
+      const userId = await AsyncStorage.getItem("userId");
+
+      setUserId(userId);
+
+      setIsLoading(false);
+    };
+
+    bootstrapAsync();
+  }, []);
+
   if (isLoading === true) {
     // We haven't finished checking for the token yet
     return null;
@@ -65,7 +88,7 @@ export default function App() {
                 headerShown: false,
               }}
             >
-              {() => <SignInScreen setToken={setToken} />}
+              {() => <SignInScreen setToken={setToken} setId={setId} />}
             </Stack.Screen>
             <Stack.Screen
               name="SignUp"
@@ -73,7 +96,7 @@ export default function App() {
                 headerShown: false,
               }}
             >
-              {() => <SignUpScreen setToken={setToken} />}
+              {() => <SignUpScreen setToken={setToken} setId={setId} />}
             </Stack.Screen>
           </>
         ) : (
@@ -147,7 +170,7 @@ export default function App() {
                 <Tab.Screen
                   name="TabProfile"
                   options={{
-                    tabBarLabel: "My profile",
+                    tabBarLabel: "My Profile",
                     tabBarIcon: ({ color, size }) => (
                       <Ionicons
                         name={"person-outline"}
@@ -162,36 +185,17 @@ export default function App() {
                       <Stack.Screen
                         name="Profile"
                         options={{
-                          title: "User Profile",
+                          header: (props) => <CustomHeader {...props} />,
                         }}
                       >
-                        {() => <ProfileScreen />}
-                      </Stack.Screen>
-                    </Stack.Navigator>
-                  )}
-                </Tab.Screen>
-                <Tab.Screen
-                  name="TabSettings"
-                  options={{
-                    tabBarLabel: "Settings",
-                    tabBarIcon: ({ color, size }) => (
-                      <Ionicons
-                        name={"ios-options"}
-                        size={size}
-                        color={color}
-                      />
-                    ),
-                  }}
-                >
-                  {() => (
-                    <Stack.Navigator>
-                      <Stack.Screen
-                        name="Settings"
-                        options={{
-                          title: "Settings",
-                        }}
-                      >
-                        {() => <SettingsScreen setToken={setToken} />}
+                        {() => (
+                          <ProfileScreen
+                            setToken={setToken}
+                            setId={setId}
+                            userId={userId}
+                            userToken={userToken}
+                          />
+                        )}
                       </Stack.Screen>
                     </Stack.Navigator>
                   )}

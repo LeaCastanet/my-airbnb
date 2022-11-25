@@ -18,7 +18,7 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import Constants from "expo-constants";
 
-export default function SignInScreen({ setToken }) {
+export default function SignInScreen({ setToken, setId }) {
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -72,9 +72,13 @@ export default function SignInScreen({ setToken }) {
                       "https://express-airbnb-api.herokuapp.com/user/log_in",
                       { email: email, password: password }
                     );
-                    if (response.data.token) {
+                    if (response.data.token && response.data.id) {
                       const userToken = response.data.token;
+                      const userId = response.data.id;
+                      console.log(response.data.token);
+                      console.log(response.data.id);
                       setToken(userToken);
+                      setId(userId);
                     }
                     alert("Successful connection");
                   } catch (error) {
