@@ -20,6 +20,7 @@ import imgProfileDefault from "../assets/imgProfileDefault.png";
 export default function ProfileScreen({ setToken, setId, userId, userToken }) {
   const [infoUser, setInfoUser] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [displayMessage, setDisplayMessage] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,74 +34,206 @@ export default function ProfileScreen({ setToken, setId, userId, userToken }) {
           }
         );
         setInfoUser(response.data);
-        console.log(response.data);
+        // console.log(response.data);
+        if (response.data.photo) {
+          setPicture(response.data.photo.url);
+        }
         setIsLoading(false);
       } catch (error) {
         console.log(error.message);
+        setDisplayMessage({
+          message: "An error occurred",
+          color: "error",
+        });
       }
     };
     fetchData();
   }, []);
 
-  const [selectedPicture, setSelectedPicture] = useState(null);
+  const [picture, setPicture] = useState(null);
+  const [isPictureModified, setIsPictureModified] = useState(false);
+  const [isInfosModified, setIsInfosModified] = useState(false);
 
-  const getPermissionAndGetPicture = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status === "granted") {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        allowsEditing: true,
-        aspect: [1, 1],
-      });
-      if (result.cancelled === true) {
-        alert("Pas de photo sélectionnée");
-      } else {
-        setSelectedPicture(result.assets[0].uri);
+  const editInformations = async () => {
+    setDisplayMessage(false);
+    if (isPictureModified || isInfosModified) {
+      setIsLoading(true);
+
+      if (isPictureModified) {
+        try {
+          const uri = picture;
+          const uriParts = uri.split(".");
+          const fileType = uriParts[1];
+
+          const formData = new FormData();
+          formData.append("photo", {
+            uri,
+            name: `userPicture`,
+            type: `image/${fileType}`,
+          });
+
+          const response = await axios.put(
+            `https://express-airbnb-api.herokuapp.com/user/upload_picture`,
+            formData,
+            {
+              headers: {
+                authorization: `Bearer ${userToken}`,
+              },
+            }
+          );
+
+          if (response.data) {
+            setPicture(response.data.photo.url);
+            setDisplayMessage({
+              message: "Your profile has been updated",
+              color: "success",
+            });
+          }
+        } catch (error) {
+          setDisplayMessage({
+            message: error.response.data.error,
+            color: "error",
+          });
+        }
       }
+
+      if (isInfosModified) {
+        try {
+          const obj = {};
+          obj.email = email;
+          obj.username = userName;
+          obj.description = description;
+          const response = await axios.put(
+            `https://express-airbnb-api.herokuapp.com/user/update`,
+            obj,
+            {
+              headers: {
+                authorization: `Bearer ${userToken}`,
+              },
+            }
+          );
+
+          if (response.data) {
+            setUserName(response.data.username);
+            setEmail(response.data.email);
+            setDescription(response.data.description);
+            setDisplayMessage({
+              message: "Your profile has been updated",
+              color: "success",
+            });
+          } else {
+            setDisplayMessage({
+              message: "An error occurred",
+              color: "error",
+            });
+          }
+        } catch (error) {
+          setDisplayMessage({
+            message: error.response.data.error,
+            color: "error",
+          });
+        }
+      }
+
+      isPictureModified && setIsPictureModified(false);
+      isInfosModified && setIsInfosModified(false);
+      setIsLoading(false);
+      fetchData();
     } else {
-      alert("Permission refusée");
+      setDisplayMessage({
+        message: "Change at least one information",
+        color: "error",
+      });
     }
   };
 
-  const getPermissionAndTakePicture = async () => {
+  const uploadPicture = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status === "granted") {
+      const result = await ImagePicker.launchImageLibraryAsync();
+      if (!result.canceled) {
+        setPicture(result.assets[0].uri);
+        if (!isPictureModified) {
+          setIsPictureModified(true);
+        }
+      }
+    }
+    setDisplayMessage(false);
+  };
+
+  const takePicture = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status === "granted") {
       const result = await ImagePicker.launchCameraAsync();
-      setSelectedPicture(result.assets[0].uri);
-    } else {
-      alert("Permission refusée");
-    }
-  };
-
-  const sendPicture = async () => {
-    setIsLoading(true);
-    const tab = selectedPicture.split(".");
-    try {
-      const formData = new FormData();
-      formData.append("photo", {
-        uri: selectedPicture,
-        name: `my-pic.${tab[1]}`,
-        type: `image/${tab[1]}`,
-      });
-      const responsePicture = await axios.put(
-        "https://express-airbnb-api.herokuapp.com/user/upload_picture",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            authorization: `Bearer ${userToken}`,
-          },
+      if (!result.canceled) {
+        setPicture(result.assets[0].uri);
+        if (!isPictureModified) {
+          setIsPictureModified(true);
         }
-      );
-
-      if (responsePicture.data) {
-        setIsLoading(false);
-        alert("Photo Envoyée !");
-        console.log(responsePicture.data);
       }
-    } catch (error) {
-      console.log(error);
     }
+    setDisplayMessage(false);
   };
+
+  // const [selectedPicture, setSelectedPicture] = useState(null);
+
+  // const getPermissionAndGetPicture = async () => {
+  //   const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  //   if (status === "granted") {
+  //     const result = await ImagePicker.launchImageLibraryAsync({
+  //       allowsEditing: true,
+  //       aspect: [1, 1],
+  //     });
+  //     if (result.cancelled === true) {
+  //       alert("Pas de photo sélectionnée");
+  //     } else {
+  //       setSelectedPicture(result.assets[0].uri);
+  //     }
+  //   } else {
+  //     alert("Permission refusée");
+  //   }
+  // };
+
+  // const getPermissionAndTakePicture = async () => {
+  //   const { status } = await ImagePicker.requestCameraPermissionsAsync();
+  //   if (status === "granted") {
+  //     const result = await ImagePicker.launchCameraAsync();
+  //     setSelectedPicture(result.assets[0].uri);
+  //   } else {
+  //     alert("Permission refusée");
+  //   }
+  // };
+
+  // const sendPicture = async () => {
+  //   setIsLoading(true);
+  //   const tab = selectedPicture.split(".");
+  //   try {
+  //     const formData = new FormData();
+  //     formData.append("photo", {
+  //       uri: selectedPicture,
+  //       name: `my-pic.${tab[1]}`,
+  //       type: `image/${tab[1]}`,
+  //     });
+  //     const responsePicture = await axios.put(
+  //       "https://express-airbnb-api.herokuapp.com/user/upload_picture",
+  //       formData,
+  //       {
+  //         headers: {
+  //           "Content-Type": "multipart/form-data",
+  //           authorization: `Bearer ${userToken}`,
+  //         },
+  //       }
+  //     );
+
+  //     if (responsePicture.data) {
+  //       setIsLoading(false);
+  //       alert("Photo Envoyée !");
+  //       console.log(responsePicture.data);
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
 
   return isLoading ? (
     <ActivityIndicator
@@ -113,11 +246,11 @@ export default function ProfileScreen({ setToken, setId, userId, userToken }) {
       <>
         <View style={[styles.pictureContainer]}>
           <View style={[styles.imgProfileContainer]}>
-            {selectedPicture ? (
+            {picture ? (
               <Image
-                source={{ uri: selectedPicture }}
+                source={{ uri: picture }}
                 style={[styles.imgProfile]}
-                resizeMode="contain"
+                resizeMode="cover"
               ></Image>
             ) : (
               <Image
@@ -130,7 +263,9 @@ export default function ProfileScreen({ setToken, setId, userId, userToken }) {
           <View style={[styles.iconsContainer]}>
             <TouchableOpacity
               style={[styles.icons]}
-              onPress={getPermissionAndGetPicture}
+              onPress={() => {
+                uploadPicture();
+              }}
             >
               <MaterialCommunityIcons
                 name="image-multiple"
@@ -140,27 +275,52 @@ export default function ProfileScreen({ setToken, setId, userId, userToken }) {
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.icons]}
-              onPress={getPermissionAndTakePicture}
+              onPress={() => {
+                takePicture();
+              }}
             >
               <FontAwesome name="camera" size={20} color="#717171" />
             </TouchableOpacity>
           </View>
         </View>
         <View style={[styles.inputContainer]}>
-          <TextInput style={[styles.input]} value={infoUser.email}></TextInput>
+          <TextInput
+            style={[styles.input]}
+            value={infoUser.email}
+            setFunction={setInfoUser}
+            setDisplayMessage={setDisplayMessage}
+            setIsInfosModified={setIsInfosModified}
+          ></TextInput>
           <TextInput
             style={[styles.input]}
             value={infoUser.username}
+            setFunction={setInfoUser}
+            setDisplayMessage={setDisplayMessage}
+            setIsInfosModified={setIsInfosModified}
           ></TextInput>
           <TextInput
             style={[styles.inputDescription]}
             value={infoUser.description}
+            setFunction={setInfoUser}
+            setDisplayMessage={setDisplayMessage}
+            setIsInfosModified={setIsInfosModified}
             multiline={true}
             textAlignVertical="top"
           ></TextInput>
         </View>
+        <View style={styles.view}>
+          {displayMessage && (
+            <Message
+              message={displayMessage.message}
+              color={displayMessage.color}
+            />
+          )}
+        </View>
         <View style={[styles.buttonContainer]}>
-          <TouchableOpacity style={[styles.buttonUpdate]} onPress={sendPicture}>
+          <TouchableOpacity
+            style={[styles.buttonUpdate]}
+            setFunction={editInformations}
+          >
             <Text style={[styles.textButton]}>Update</Text>
           </TouchableOpacity>
 
@@ -200,11 +360,13 @@ const styles = StyleSheet.create({
     borderRadius: "100%",
     borderWidth: 1,
     borderColor: "#ec5a62",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   imgProfile: {
-    height: 170,
-    width: 170,
+    height: 160,
+    width: 160,
     borderRadius: "100%",
   },
 
@@ -229,7 +391,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ec5a62",
     height: 80,
-    marginBottom: 20,
+
     marginTop: 20,
     paddingHorizontal: 5,
   },
@@ -264,5 +426,9 @@ const styles = StyleSheet.create({
   textButton: {
     fontWeight: "bold",
     color: "#717171",
+  },
+
+  view: {
+    height: 30,
   },
 });

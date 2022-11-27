@@ -47,11 +47,11 @@ export default function RoomScreen() {
   let rating = infoRoom.ratingValue;
   let stars = [];
   for (let i = 1; i <= 5; i++) {
-    let path = <Entypo name="star" size={24} color="orange" key={i} />;
-    if (i > rating) {
-      path = <Entypo name="star" size={24} color="#bbbbbb" key={i} />;
+    if (rating >= i) {
+      stars.push(<Entypo name="star" size={24} color="orange" key={i} />);
+    } else {
+      stars.push(<Entypo name="star" size={24} color="#bbbbbb" key={i} />);
     }
-    stars.push(path);
   }
 
   const [textShown, setTextShown] = useState(false); //To show ur remaining Text
@@ -84,16 +84,18 @@ export default function RoomScreen() {
           {infoRoom.photos.map((slide) => {
             return (
               <>
-                <View style={styles.slide} key={slide.picture_id}>
+                <View style={styles.slide}>
                   <Image
                     source={{ uri: slide.url }}
                     style={{ height: "100%", width: "100%" }}
+                    key={slide.picture_id}
                   />
                 </View>
               </>
             );
           })}
         </Swiper>
+
         <View style={[styles.priceContainer]}>
           <Text style={[styles.price]}>{infoRoom.price} €</Text>
         </View>
