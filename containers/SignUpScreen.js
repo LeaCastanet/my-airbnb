@@ -25,11 +25,6 @@ export default function SignUpScreen({ setToken, setId }) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const startLoading = () => {
-    setLoading(true);
-  };
 
   return (
     <KeyboardAwareScrollView style={[styles.container]}>
@@ -89,60 +84,51 @@ export default function SignUpScreen({ setToken, setId }) {
           <View style={[styles.inputContainerBas]}>
             <View style={[styles.buttonContainer]}>
               <Text style={[styles.errorMessage]}>{errorMessage}</Text>
-              {loading ? (
-                <ActivityIndicator
-                  visible={loading}
-                  textContent={"Loading..."}
-                />
-              ) : (
-                <Pressable
-                  style={[styles.button]}
-                  onPress={async () => {
-                    setErrorMessage("");
-                    startLoading();
-                    try {
-                      const response = await axios.post(
-                        "https://express-airbnb-api.herokuapp.com/user/sign_up",
-                        {
-                          email: email,
-                          username: username,
-                          description: description,
-                          password: password,
-                        }
-                      );
-                      if (response.data.token && response.data.id) {
-                        const userToken = response.data.token;
-                        const userId = response.data.id;
-                        setToken(userToken);
-                        setId(userId);
+              <Pressable
+                style={[styles.button]}
+                onPress={async () => {
+                  setErrorMessage("");
+
+                  try {
+                    const response = await axios.post(
+                      "https://express-airbnb-api.herokuapp.com/user/sign_up",
+                      {
+                        email: email,
+                        username: username,
+                        description: description,
+                        password: password,
                       }
-                      alert("Successful registration");
-                    } catch (error) {
-                      if (confirmPassword !== password) {
-                        setErrorMessage("Your two passwords are not identical");
-                      } else if (
-                        error.response?.data.error === "Missing parameters"
-                      ) {
-                        setErrorMessage("Please fill all fields");
-                      } else if (
-                        error.response?.data.error ===
-                        "This email already has an account."
-                      ) {
-                        setErrorMessage("This email already has an account");
-                      } else if (
-                        error.response?.data.error ===
-                        "This username already has an account."
-                      ) {
-                        setErrorMessage(
-                          "This username already has an account."
-                        );
-                      }
+                    );
+                    if (response.data.token && response.data.id) {
+                      const userToken = response.data.token;
+                      const userId = response.data.id;
+                      setToken(userToken);
+                      setId(userId);
                     }
-                  }}
-                >
-                  <Text style={[styles.textButton]}>Sign Up</Text>
-                </Pressable>
-              )}
+                    alert("Successful registration");
+                  } catch (error) {
+                    if (confirmPassword !== password) {
+                      setErrorMessage("Your two passwords are not identical");
+                    } else if (
+                      error.response?.data.error === "Missing parameters"
+                    ) {
+                      setErrorMessage("Please fill all fields");
+                    } else if (
+                      error.response?.data.error ===
+                      "This email already has an account."
+                    ) {
+                      setErrorMessage("This email already has an account");
+                    } else if (
+                      error.response?.data.error ===
+                      "This username already has an account."
+                    ) {
+                      setErrorMessage("This username already has an account.");
+                    }
+                  }
+                }}
+              >
+                <Text style={[styles.textButton]}>Sign Up</Text>
+              </Pressable>
             </View>
             <TouchableOpacity
               onPress={() => {
