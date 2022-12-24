@@ -83,15 +83,12 @@ export default function RoomScreen() {
         >
           {infoRoom.photos.map((slide) => {
             return (
-              <>
-                <View style={styles.slide}>
-                  <Image
-                    source={{ uri: slide.url }}
-                    style={{ height: "100%", width: "100%" }}
-                    key={slide.picture_id}
-                  />
-                </View>
-              </>
+              <View style={styles.slide} key={slide.picture_id}>
+                <Image
+                  source={{ uri: slide.url }}
+                  style={{ height: "100%", width: "100%" }}
+                />
+              </View>
             );
           })}
         </Swiper>

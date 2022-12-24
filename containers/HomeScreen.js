@@ -46,6 +46,7 @@ export default function HomeScreen() {
     <SafeAreaView>
       <View style={[styles.container]}>
         <FlatList
+          showsVerticalScrollIndicator={false}
           data={infoHome}
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => {

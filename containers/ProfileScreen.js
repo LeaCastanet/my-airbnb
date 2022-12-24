@@ -15,44 +15,53 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 import axios from "axios";
+
 import imgProfileDefault from "../assets/imgProfileDefault.png";
 
+import CustomInput from "../components/CustomInput";
+import CustomLargeInput from "../components/CustomLargeInput";
+import Message from "../components/Message";
+
 export default function ProfileScreen({ setToken, setId, userId, userToken }) {
-  const [infoUser, setInfoUser] = useState([]);
+  const [userName, setUserName] = useState("");
+  const [email, setEmail] = useState("");
+  const [description, setDescription] = useState("");
+  const [picture, setPicture] = useState(null);
+  const [isPictureModified, setIsPictureModified] = useState(false);
+  const [isInfosModified, setIsInfosModified] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [displayMessage, setDisplayMessage] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(
-          `https://express-airbnb-api.herokuapp.com/user/${userId}`,
-          {
-            headers: {
-              authorization: `Bearer ${userToken}`,
-            },
-          }
-        );
-        setInfoUser(response.data);
-        // console.log(response.data);
-        if (response.data.photo) {
-          setPicture(response.data.photo.url);
-        }
-        setIsLoading(false);
-      } catch (error) {
-        console.log(error.message);
-        setDisplayMessage({
-          message: "An error occurred",
-          color: "error",
-        });
-      }
-    };
     fetchData();
   }, []);
 
-  const [picture, setPicture] = useState(null);
-  const [isPictureModified, setIsPictureModified] = useState(false);
-  const [isInfosModified, setIsInfosModified] = useState(false);
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(
+        `https://express-airbnb-api.herokuapp.com/user/${userId}`,
+        {
+          headers: {
+            authorization: `Bearer ${userToken}`,
+          },
+        }
+      );
+      setUserName(response.data.username);
+      setEmail(response.data.email);
+      setDescription(response.data.description);
+      // console.log(response.data);
+      if (response.data.photo) {
+        setPicture(response.data.photo.url);
+      }
+      setIsLoading(false);
+    } catch (error) {
+      console.log(error.message);
+      setDisplayMessage({
+        message: "An error occurred",
+        color: "error",
+      });
+    }
+  };
 
   const editInformations = async () => {
     setDisplayMessage(false);
@@ -112,7 +121,6 @@ export default function ProfileScreen({ setToken, setId, userId, userToken }) {
               },
             }
           );
-
           if (response.data) {
             setUserName(response.data.username);
             setEmail(response.data.email);
@@ -175,66 +183,6 @@ export default function ProfileScreen({ setToken, setId, userId, userToken }) {
     setDisplayMessage(false);
   };
 
-  // const [selectedPicture, setSelectedPicture] = useState(null);
-
-  // const getPermissionAndGetPicture = async () => {
-  //   const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  //   if (status === "granted") {
-  //     const result = await ImagePicker.launchImageLibraryAsync({
-  //       allowsEditing: true,
-  //       aspect: [1, 1],
-  //     });
-  //     if (result.cancelled === true) {
-  //       alert("Pas de photo sélectionnée");
-  //     } else {
-  //       setSelectedPicture(result.assets[0].uri);
-  //     }
-  //   } else {
-  //     alert("Permission refusée");
-  //   }
-  // };
-
-  // const getPermissionAndTakePicture = async () => {
-  //   const { status } = await ImagePicker.requestCameraPermissionsAsync();
-  //   if (status === "granted") {
-  //     const result = await ImagePicker.launchCameraAsync();
-  //     setSelectedPicture(result.assets[0].uri);
-  //   } else {
-  //     alert("Permission refusée");
-  //   }
-  // };
-
-  // const sendPicture = async () => {
-  //   setIsLoading(true);
-  //   const tab = selectedPicture.split(".");
-  //   try {
-  //     const formData = new FormData();
-  //     formData.append("photo", {
-  //       uri: selectedPicture,
-  //       name: `my-pic.${tab[1]}`,
-  //       type: `image/${tab[1]}`,
-  //     });
-  //     const responsePicture = await axios.put(
-  //       "https://express-airbnb-api.herokuapp.com/user/upload_picture",
-  //       formData,
-  //       {
-  //         headers: {
-  //           "Content-Type": "multipart/form-data",
-  //           authorization: `Bearer ${userToken}`,
-  //         },
-  //       }
-  //     );
-
-  //     if (responsePicture.data) {
-  //       setIsLoading(false);
-  //       alert("Photo Envoyée !");
-  //       console.log(responsePicture.data);
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
-
   return isLoading ? (
     <ActivityIndicator
       size="large"
@@ -284,29 +232,29 @@ export default function ProfileScreen({ setToken, setId, userId, userToken }) {
           </View>
         </View>
         <View style={[styles.inputContainer]}>
-          <TextInput
+          <CustomInput
             style={[styles.input]}
-            value={infoUser.email}
-            setFunction={setInfoUser}
+            value={email}
+            setFunction={setEmail}
             setDisplayMessage={setDisplayMessage}
             setIsInfosModified={setIsInfosModified}
-          ></TextInput>
-          <TextInput
+          ></CustomInput>
+          <CustomInput
             style={[styles.input]}
-            value={infoUser.username}
-            setFunction={setInfoUser}
+            value={userName}
+            setFunction={setUserName}
             setDisplayMessage={setDisplayMessage}
             setIsInfosModified={setIsInfosModified}
-          ></TextInput>
-          <TextInput
+          ></CustomInput>
+          <CustomLargeInput
             style={[styles.inputDescription]}
-            value={infoUser.description}
-            setFunction={setInfoUser}
+            value={description}
+            setFunction={setDescription}
             setDisplayMessage={setDisplayMessage}
             setIsInfosModified={setIsInfosModified}
             multiline={true}
             textAlignVertical="top"
-          ></TextInput>
+          ></CustomLargeInput>
         </View>
         <View style={styles.view}>
           {displayMessage && (
@@ -319,7 +267,9 @@ export default function ProfileScreen({ setToken, setId, userId, userToken }) {
         <View style={[styles.buttonContainer]}>
           <TouchableOpacity
             style={[styles.buttonUpdate]}
-            setFunction={editInformations}
+            onPress={() => {
+              editInformations();
+            }}
           >
             <Text style={[styles.textButton]}>Update</Text>
           </TouchableOpacity>
@@ -357,7 +307,7 @@ const styles = StyleSheet.create({
   imgProfileContainer: {
     height: 170,
     width: 170,
-    borderRadius: "100%",
+    borderRadius: 100,
     borderWidth: 1,
     borderColor: "#ec5a62",
     alignItems: "center",
@@ -367,7 +317,7 @@ const styles = StyleSheet.create({
   imgProfile: {
     height: 160,
     width: 160,
-    borderRadius: "100%",
+    borderRadius: 100,
   },
 
   icons: {

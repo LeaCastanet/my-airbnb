@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
   logoContainer: {
     justifyContent: "center",
     alignItems: "center",
-    paddingTop: 20,
+    paddingTop: 30,
     paddingBottom: 20,
   },
 

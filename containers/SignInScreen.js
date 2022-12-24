@@ -23,11 +23,6 @@ export default function SignInScreen({ setToken, setId }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const startLoading = () => {
-    setLoading(true);
-  };
 
   return (
     <View style={[styles.container]}>
@@ -59,40 +54,35 @@ export default function SignInScreen({ setToken, setId }) {
         <View style={[styles.inputContainerBas]}>
           <View style={[styles.buttonContainer]}>
             <Text style={[styles.errorMessage]}>{errorMessage}</Text>
-            {loading ? (
-              <ActivityIndicator visible={loading} textContent={"Loading..."} />
-            ) : (
-              <Pressable
-                style={[styles.button]}
-                onPress={async () => {
-                  setErrorMessage("");
-                  startLoading();
-                  try {
-                    const response = await axios.post(
-                      "https://express-airbnb-api.herokuapp.com/user/log_in",
-                      { email: email, password: password }
-                    );
-                    if (response.data.token && response.data.id) {
-                      const userToken = response.data.token;
-                      const userId = response.data.id;
-                      console.log(response.data.token);
-                      console.log(response.data.id);
-                      setToken(userToken);
-                      setId(userId);
-                    }
-                    alert("Successful connection");
-                  } catch (error) {
-                    if (error.response?.data.error === "Missing parameter(s)") {
-                      setErrorMessage("Please fill all fields");
-                    } else if (error.response?.data.error === "Unauthorized") {
-                      setErrorMessage("Incorrect email or password");
-                    }
+            <Pressable
+              style={[styles.button]}
+              onPress={async () => {
+                setErrorMessage("");
+                try {
+                  const response = await axios.post(
+                    "https://express-airbnb-api.herokuapp.com/user/log_in",
+                    { email: email, password: password }
+                  );
+                  if (response.data.token && response.data.id) {
+                    const userToken = response.data.token;
+                    const userId = response.data.id;
+                    // console.log(response.data.token);
+                    // console.log(response.data.id);
+                    setToken(userToken);
+                    setId(userId);
                   }
-                }}
-              >
-                <Text style={[styles.textButton]}>Sign In</Text>
-              </Pressable>
-            )}
+                  alert("Successful connection");
+                } catch (error) {
+                  if (error.response?.data.error === "Missing parameter(s)") {
+                    setErrorMessage("Please fill all fields");
+                  } else if (error.response?.data.error === "Unauthorized") {
+                    setErrorMessage("Incorrect email or password");
+                  }
+                }
+              }}
+            >
+              <Text style={[styles.textButton]}>Sign In</Text>
+            </Pressable>
           </View>
           <TouchableOpacity
             onPress={() => {
